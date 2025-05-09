@@ -21,7 +21,7 @@ or install within your existing env with mamba.
 
 3. Install `disp_xr` via pip in editable mode
 ```bash
-python -m pip install --no-deps -e  disp_xr
+python -m pip install --no-deps -e  disp-xr
 ```
 
 ### Usage
