@@ -1,13 +1,12 @@
 
+# Xarray tools for OPERA DISP
 
-# XARRAY tools for OPERA DISP
-
-
+Analysis tools using [`xarray`](xarray.dev) for OPERA Surface Displacement from Sentinel-1 (DISP-S1) and Surface Displacement from NISAR (DISP-NISAR).
 
 ## Development setup
 
-
 ### Prerequisite installs
+
 1. Download source code:
 ```bash
 git clone https://github.com/opera-adt/disp-xr.git
@@ -24,13 +23,7 @@ or install within your existing env with mamba.
 python -m pip install --no-deps -e  disp-xr
 ```
 
-### Usage
-
-There are 5 entrypoints for the disp_xr:
-`
-
 ### Setup for contributing
-
 
 We use [pre-commit](https://pre-commit.com/) to automatically run linting, formatting, and [mypy type checking](https://www.mypy-lang.org/).
 Additionally, we follow [`numpydoc` conventions for docstrings](https://numpydoc.readthedocs.io/en/latest/format.html).
@@ -60,8 +53,3 @@ Then run the tests:
 ```bash
 pytest
 ```
-
-
-### Building the docker image
-
-TBD
