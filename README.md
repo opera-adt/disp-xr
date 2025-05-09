@@ -10,11 +10,11 @@
 ### Prerequisite installs
 1. Download source code:
 ```bash
-git clone https://github.com/opera-adt/opera_tropo.git
+git clone https://github.com/opera-adt/disp-xr.git
 ```
 2. Install dependencies, either to a new environment:
 ```bash
-mamba env create --name disp_xr --file disp_xr/environment.yml
+mamba env create --name disp_xr --file disp-xr/environment.yml
 conda activate disp_xr
 ```
 or install within your existing env with mamba.
