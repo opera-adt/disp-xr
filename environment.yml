@@ -22,7 +22,9 @@ dependencies:
   - libgdal-hdf5
   - libgdal-netcdf
   - zarr
-  - matplotlib-base
+  - matplotlib
+  - folium
+  - mapclassify
 # env
   - ruff
   - pre_commit

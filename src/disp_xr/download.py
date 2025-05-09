@@ -10,6 +10,7 @@ from typing import Any
 
 import pandas as pd
 import requests
+from shapely.geometry import Polygon
 
 __all__ = ["search"]
 
@@ -136,6 +137,20 @@ def from_umm(umm_data: dict[str, Any], url_type: UrlType = UrlType.HTTPS):
     )
     size_in_bytes = archive_info[0].get("SizeInBytes", 0) if archive_info else None
     product_dict["size_in_bytes"] = size_in_bytes
+
+    # Get geometry
+    coords = (
+        umm_data.get("SpatialExtent", {})
+        .get("HorizontalSpatialDomain", {})
+        .get("Geometry", [])
+        .get("GPolygons", [])[0]
+        .get("Boundary", [])
+        .get("Points", [])
+    )
+
+    polygon = Polygon([(pt["Longitude"], pt["Latitude"]) for pt in coords])
+    product_dict["geometry"] = polygon
+
     return product_dict
 
 
