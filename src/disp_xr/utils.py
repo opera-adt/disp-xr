@@ -68,7 +68,10 @@ def latlon_to_utm(lat: float, lon: float, utm_epsg: int) -> Tuple[float, float]:
     transformer = Transformer.from_crs("epsg:4326", f"epsg:{utm_epsg}", always_xy=True)
     return transformer.transform(lon, lat)
 
-def utm_to_latlon(easting: float, northing: float, utm_epsg: int) -> Tuple[float, float]:
+
+def utm_to_latlon(
+    easting: float, northing: float, utm_epsg: int
+) -> Tuple[float, float]:
     """Convert UTM coordinates to latitude and longitude.
 
     Parameters
@@ -84,10 +87,12 @@ def utm_to_latlon(easting: float, northing: float, utm_epsg: int) -> Tuple[float
     -------
     Tuple[float, float]
         (latitude, longitude) in decimal degrees.
+
     """
     transformer = Transformer.from_crs(f"epsg:{utm_epsg}", "epsg:4326", always_xy=True)
     lon, lat = transformer.transform(easting, northing)
     return lat, lon
+
 
 def get_extent(ds: xr.Dataset) -> Tuple[float, float, float, float]:
     """Calculate the DISP spatial extent in UTM.

@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+from io import BytesIO
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any, Dict, NamedTuple, Tuple, Union
 
 import numpy as np
-from io import BytesIO
 import rasterio
 from rasterio.crs import CRS
 from rasterio.transform import Affine, from_bounds
 from rasterio.warp import Resampling, reproject
-from tempfile import NamedTemporaryFile
 
 
 class GeoInfo(NamedTuple):
@@ -21,6 +21,7 @@ class GeoInfo(NamedTuple):
     gt: Tuple[float, float, float, float, float, float]  # GDAL transform
     rows: int
     cols: int
+
 
 def get_geospatial_info(file_path: Union[str, Path, BytesIO]) -> GeoInfo:
     """Get geospatial metadata from a NetCDF displacement file.
@@ -37,6 +38,7 @@ def get_geospatial_info(file_path: Union[str, Path, BytesIO]) -> GeoInfo:
     GeoInfo : namedtuple
         A named tuple containing:
         - crs, bounds, transform, gt, rows, cols
+
     """
     if isinstance(file_path, BytesIO):
         with NamedTemporaryFile(suffix=".nc") as tmp:
@@ -62,7 +64,6 @@ def get_geospatial_info(file_path: Union[str, Path, BytesIO]) -> GeoInfo:
                 rows=rd.height,
                 cols=rd.width,
             )
-
 
 
 def open_image(file: Union[str, Path]) -> Tuple[np.ndarray, Dict[str, Any]]:
