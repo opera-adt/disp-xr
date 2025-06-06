@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from io import BytesIO
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any, Dict, NamedTuple, Tuple, Union
 
 import numpy as np
@@ -21,35 +23,47 @@ class GeoInfo(NamedTuple):
     cols: int
 
 
-def get_geospatial_info(file_path: Union[str, Path]) -> GeoInfo:
+def get_geospatial_info(file_path: Union[str, Path, BytesIO]) -> GeoInfo:
     """Get geospatial metadata from a NetCDF displacement file.
+
+    Supports both file paths and in-memory BytesIO objects.
 
     Parameters
     ----------
-    file_path : str or Path
-        Path to the NetCDF file.
+    file_path : str, Path, or BytesIO
+        Path to the NetCDF file, or an in-memory BytesIO object.
 
     Returns
     -------
     GeoInfo : namedtuple
         A named tuple containing:
-        - crs (CRS): Coordinate reference system of the dataset.
-        - bounds (Tuple[float, float, float, float]): Spatial extent (min/max x and y).
-        - transform (Affine): Affine transformation matrix for georeferencing.
-        - gt (Tuple[float, float, float, float, float, float]): GDAL geotransform.
-        - rows (int): Number of rows (height) in the dataset.
-        - cols (int): Number of columns (width) in the dataset.
+        - crs, bounds, transform, gt, rows, cols
 
     """
-    with rasterio.open(f'NETCDF:"{file_path}":/displacement') as rd:
-        return GeoInfo(
-            crs=rd.crs,
-            bounds=rd.bounds,
-            transform=rd.transform,
-            gt=rd.transform.to_gdal(),
-            rows=rd.height,
-            cols=rd.width,
-        )
+    if isinstance(file_path, BytesIO):
+        with NamedTemporaryFile(suffix=".nc") as tmp:
+            tmp.write(file_path.getbuffer())
+            tmp.flush()
+            path_to_use = tmp.name
+            with rasterio.open(f'NETCDF:"{path_to_use}":/displacement') as rd:
+                return GeoInfo(
+                    crs=rd.crs,
+                    bounds=rd.bounds,
+                    transform=rd.transform,
+                    gt=rd.transform.to_gdal(),
+                    rows=rd.height,
+                    cols=rd.width,
+                )
+    else:
+        with rasterio.open(f'NETCDF:"{file_path}":/displacement') as rd:
+            return GeoInfo(
+                crs=rd.crs,
+                bounds=rd.bounds,
+                transform=rd.transform,
+                gt=rd.transform.to_gdal(),
+                rows=rd.height,
+                cols=rd.width,
+            )
 
 
 def open_image(file: Union[str, Path]) -> Tuple[np.ndarray, Dict[str, Any]]:
