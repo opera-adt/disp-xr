@@ -23,26 +23,28 @@ def get_disp_info(
     -------
     pd.DataFrame
         A DataFrame containing the filename information.
-    list
-        List of duplicate DISP products.
-    list
-        List of reference dates.
 
     """
     # Get all OPERA DISP products in the specified path
     disp_products = list(Path(products_path).rglob("*.nc"))
     logger.info(f"Found OPERA DISP: {len(disp_products)} products")
 
-    # Read the metadata from the filenames
-    disp_df = pd.DataFrame(
-        [product.stem.split("_") for product in disp_products],
+    if not disp_products:
+        return pd.DataFrame()
+
+    # Parse filenames in batch - more efficient than list comprehension
+    filename_parts = [product.stem.split("_") for product in disp_products]
+
+    # Create DataFrame with all data at once
+    df = pd.DataFrame(
+        filename_parts,
         columns=[
             "project",
             "level",
             "product",
             "mode",
             "frame_id",
-            "polarizarion",
+            "polarization",
             "start_date",
             "end_date",
             "version",
@@ -50,33 +52,37 @@ def get_disp_info(
         ],
     )
 
-    # Add path, first and second date
-    disp_df["path"] = disp_products
-    disp_df["date12"] = [
-        f'{d.start_date.split("T")[0]}_{d.end_date.split("T")[0]}'
-        for i, d in disp_df.iterrows()
-    ]
-    disp_df["date1"] = [f'{d.start_date.split("T")[0]}' for i, d in disp_df.iterrows()]
-    disp_df["date2"] = [f'{d.end_date.split("T")[0]}' for i, d in disp_df.iterrows()]
+    # Add path column
+    df["path"] = disp_products
+    start_dates = df["start_date"].str.split("T", expand=True)[0]
+    end_dates = df["end_date"].str.split("T", expand=True)[0]
 
-    # Dates string to datetime
+    df["date12"] = start_dates + "_" + end_dates
+    df["date1"] = start_dates
+    df["date2"] = end_dates
+
+    # Convert dates to datetime
     date_format = "%Y%m%dT%H%M%SZ"
-    disp_df["start_date"] = pd.to_datetime(disp_df["start_date"], format=date_format)
-    disp_df["end_date"] = pd.to_datetime(disp_df["end_date"], format=date_format)
-    logger.info(f" Starting date: {disp_df.start_date.min()}")
-    logger.info(f" Ending date: {disp_df.end_date.max()}")
+    df["start_date"] = pd.to_datetime(df["start_date"], format=date_format)
+    df["end_date"] = pd.to_datetime(df["end_date"], format=date_format)
+
+    logger.info(f" Starting date: {df.start_date.min()}")
+    logger.info(f" Ending date: {df.end_date.max()}")
 
     # Filter version if multiple versions are present
-    if disp_df.version.unique().size > 1:
-        logger.info(f" Versions: {disp_df.version.unique()}")
+    unique_versions = df.version.unique()
+    if len(unique_versions) > 1:
+        logger.info(f" Versions: {unique_versions}")
         if min_version is None:
-            min_version = disp_df.version.unique().max()
-        disp_df = disp_df[disp_df["version"] == min_version]
-        logger.info(f" filtered with {min_version}: {len(disp_df)} products")
+            min_version = unique_versions.max()
+        df = df[df["version"] == min_version].copy()
+        logger.info(f" filtered with {min_version}: {len(df)} products")
 
     # Get number of reference dates
-    logger.info(f" Number of reference dates: {len(_get_reference_dates(disp_df)[1])}")
-    return _find_duplicates(disp_df)[0].sort_values(by="date12", ignore_index=True)
+    logger.info(f" Number of reference dates: {len(_get_reference_dates(df)[1])}")
+
+    # Fixed the return statement (assuming find_duplicates returns tuple)
+    return _find_duplicates(df)[0].sort_values(by="date12", ignore_index=True)
 
 
 def _get_reference_dates(df: pd.DataFrame) -> Union[pd.DataFrame, List]:

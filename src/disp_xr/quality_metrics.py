@@ -101,7 +101,7 @@ def get_stack_stat(stack_xr: xr.DataArray, mode: str = "mean") -> xr.DataArray:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         warnings.filterwarnings("ignore", message="All-NaN slice encountered")
-        data = func_stat(mode)(stack_xr).compute()
+        data = func_stat(mode)(stack_xr)
     return data.squeeze()
 
 
@@ -171,9 +171,9 @@ def get_value_percentage(
     )
 
     if template.sizes["time"] > 1:
-        data = data.sum(dim="time").values
+        data = data.sum(dim="time")
     else:
-        data = np.squeeze(data.values)
+        data = np.squeeze(data)
 
     pct = data / np.int64(stack_xr.time.size) * 100
     return pct
